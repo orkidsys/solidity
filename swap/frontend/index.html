@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Swap - Decentralized Exchange</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔄 Token Swap</h1>
+            <div class="wallet-section">
+                <button id="connectWallet" class="btn btn-primary">Connect Wallet</button>
+                <div id="walletInfo" class="wallet-info" style="display: none;">
+                    <span id="walletAddress"></span>
+                    <button id="disconnectWallet" class="btn btn-secondary">Disconnect</button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="swap-card">
+                <h2>Swap Tokens</h2>
+                
+                <div class="swap-form">
+                    <!-- Token A Input -->
+                    <div class="token-input">
+                        <div class="input-header">
+                            <label>From</label>
+                            <span class="balance" id="balanceA">Balance: 0</span>
+                        </div>
+                        <div class="input-group">
+                            <input 
+                                type="text" 
+                                id="amountA" 
+                                placeholder="0.0" 
+                                class="amount-input"
+                            >
+                            <select id="tokenA" class="token-select">
+                                <option value="">Select Token</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Swap Button -->
+                    <div class="swap-button-container">
+                        <button id="swapDirection" class="swap-direction-btn">⇅</button>
+                    </div>
+
+                    <!-- Token B Input -->
+                    <div class="token-input">
+                        <div class="input-header">
+                            <label>To</label>
+                            <span class="balance" id="balanceB">Balance: 0</span>
+                        </div>
+                        <div class="input-group">
+                            <input 
+                                type="text" 
+                                id="amountB" 
+                                placeholder="0.0" 
+                                class="amount-input"
+                                readonly
+                            >
+                            <select id="tokenB" class="token-select">
+                                <option value="">Select Token</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Swap Info -->
+                    <div class="swap-info" id="swapInfo" style="display: none;">
+                        <div class="info-row">
+                            <span>Exchange Rate:</span>
+                            <span id="exchangeRate">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span>Price Impact:</span>
+                            <span id="priceImpact">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span>Minimum Received:</span>
+                            <span id="minReceived">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button id="approveBtn" class="btn btn-secondary" style="display: none;">
+                            Approve Token
+                        </button>
+                        <button id="swapBtn" class="btn btn-primary" disabled>
+                            Swap
+                        </button>
+                    </div>
+
+                    <!-- Status Messages -->
+                    <div id="statusMessage" class="status-message"></div>
+                </div>
+            </div>
+
+            <!-- Liquidity Section (Admin) -->
+            <div class="liquidity-card" id="liquidityCard" style="display: none;">
+                <h2>Liquidity Management</h2>
+                <div class="liquidity-form">
+                    <div class="token-input">
+                        <label>Token A Amount</label>
+                        <input type="text" id="liquidityA" placeholder="0.0" class="amount-input">
+                    </div>
+                    <div class="token-input">
+                        <label>Token B Amount</label>
+                        <input type="text" id="liquidityB" placeholder="0.0" class="amount-input">
+                    </div>
+                    <div class="action-buttons">
+                        <button id="addLiquidityBtn" class="btn btn-primary">Add Liquidity</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration Section -->
+            <div class="config-card">
+                <h3>Configuration</h3>
+                <div class="config-inputs">
+                    <div class="input-group">
+                        <label>Swap Contract Address:</label>
+                        <input type="text" id="swapContractAddress" placeholder="0x...">
+                    </div>
+                    <div class="input-group">
+                        <label>Token A Address:</label>
+                        <input type="text" id="configTokenA" placeholder="0x...">
+                    </div>
+                    <div class="input-group">
+                        <label>Token B Address:</label>
+                        <input type="text" id="configTokenB" placeholder="0x...">
+                    </div>
+                    <button id="loadConfig" class="btn btn-secondary">Load Configuration</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Ensure ethers is loaded before app.js runs
+        window.addEventListener('load', function() {
+            if (typeof ethers === 'undefined') {
+                console.error('ethers.js failed to load');
+                document.body.innerHTML = '<div style="padding: 20px; text-align: center; background: white; margin: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"><h2 style="color: #721c24;">Error: ethers.js library not loaded</h2><p>Please check your internet connection and refresh the page.</p><p style="font-size: 12px; color: #666;">If the problem persists, try using a different browser or check your network settings.</p></div>';
+            }
+        });
+    </script>
+    <script src="app.js" defer></script>
+</body>
+</html>
+</body>
+</html>
