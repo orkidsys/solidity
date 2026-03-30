@@ -39,6 +39,9 @@ contract PerpetualMarket {
     uint256 public liquidationFeeBps;
     address public insuranceFund;
 
+    /// @notice Optional router (e.g. deposit-and-open helper); zero disables `openPositionFor`.
+    address public router;
+
     address public owner;
 
     event PositionOpened(
@@ -52,6 +55,7 @@ contract PerpetualMarket {
     event Liquidated(address indexed user, address indexed liquidator, uint256 reward);
     event FundingRateScalerUpdated(uint256 scaler);
     event ParamsUpdated(uint256 maintenanceBps, uint256 liqFeeBps, address insurance);
+    event RouterUpdated(address indexed router);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "only owner");
@@ -90,6 +94,16 @@ contract PerpetualMarket {
         liquidationFeeBps = liqFeeBps;
         insuranceFund = _insurance;
         emit ParamsUpdated(maintenanceBps, liqFeeBps, _insurance);
+    }
+
+    function setRouter(address _router) external onlyOwner {
+        router = _router;
+        emit RouterUpdated(_router);
+    }
+
+    /// @notice Keeper or UI can advance funding time; idempotent within the same block.
+    function accrueFunding() external {
+        _accrueFunding();
     }
 
     function _accrueFunding() internal {
@@ -140,14 +154,25 @@ contract PerpetualMarket {
     }
 
     function openPosition(bool isLong, uint128 sizeUsdWad, uint128 marginAmount) external {
+        _openPosition(msg.sender, isLong, sizeUsdWad, marginAmount);
+    }
+
+    /// @dev Only callable by `router` when set; opens an isolated position for `trader` (vault credits `trader`).
+    function openPositionFor(address trader, bool isLong, uint128 sizeUsdWad, uint128 marginAmount) external {
+        require(router != address(0) && msg.sender == router, "only router");
+        _openPosition(trader, isLong, sizeUsdWad, marginAmount);
+    }
+
+    function _openPosition(address trader, bool isLong, uint128 sizeUsdWad, uint128 marginAmount) internal {
+        require(trader != address(0), "zero trader");
         require(sizeUsdWad > 0 && marginAmount > 0, "amount");
-        require(!positions[msg.sender].isOpen, "already open");
+        require(!positions[trader].isOpen, "already open");
         _accrueFunding();
 
         uint256 mark = _markPrice();
-        vault.lockMargin(msg.sender, marginAmount);
+        vault.lockMargin(trader, marginAmount);
 
-        positions[msg.sender] = Position({
+        positions[trader] = Position({
             isLong: isLong,
             isOpen: true,
             sizeUsdWad: sizeUsdWad,
@@ -159,7 +184,7 @@ contract PerpetualMarket {
         if (isLong) longOpenInterestWad += uint256(sizeUsdWad);
         else shortOpenInterestWad += uint256(sizeUsdWad);
 
-        emit PositionOpened(msg.sender, isLong, sizeUsdWad, mark, marginAmount);
+        emit PositionOpened(trader, isLong, sizeUsdWad, mark, marginAmount);
     }
 
     function addMargin(uint128 amount) external {

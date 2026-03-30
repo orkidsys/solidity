@@ -39,6 +39,14 @@ contract CollateralVault {
         emit Deposited(msg.sender, amount);
     }
 
+    /// @notice Deposit on behalf of another user (e.g. relayer or router after pulling tokens from payer).
+    function depositFor(address beneficiary, uint256 amount) external {
+        require(beneficiary != address(0), "zero beneficiary");
+        require(collateralToken.transferFrom(msg.sender, address(this), amount), "transferFrom");
+        balanceOf[beneficiary] += amount;
+        emit Deposited(beneficiary, amount);
+    }
+
     function withdraw(uint256 amount) external {
         uint256 freeBal = balanceOf[msg.sender] - marginLocked[msg.sender];
         require(freeBal >= amount, "insufficient free");
